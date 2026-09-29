@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Dashboard OYM</title>
+
+<!-- =========================
+     CSS
+========================== -->
+
+<link rel="stylesheet" href="css/estilo.css">
+
+
+</head>
+
+<body>
+
+
+<!-- =========================
+     ENCABEZADO
+========================== -->
+
+<header class="encabezado-dashboard">
+
+    <div>
+
+        <h1>Dashboard OYM</h1>
+
+        <p>
+            Control y seguimiento de actividades
+            de Operación y Mantenimiento
+        </p>
+
+    </div>
+
+
+    <div class="estado-conexion">
+
+        <span class="punto-conexion"></span>
+
+        Datos en línea
+
+    </div>
+
+</header>
+
+
+
+<!-- =========================
+     TARJETAS KPI
+========================== -->
+
+<div class="kpi-container">
+
+
+    <div class="kpi-card">
+
+        <h3>Total actividades</h3>
+
+        <p id="totalActividades">
+            0
+        </p>
+
+    </div>
+
+
+    <div class="kpi-card">
+
+        <h3>Completadas</h3>
+
+        <p id="completadas">
+            0
+        </p>
+
+    </div>
+
+
+    <div class="kpi-card">
+
+        <h3>Pendientes</h3>
+
+        <p id="pendientes">
+            0
+        </p>
+
+    </div>
+
+
+    <div class="kpi-card">
+
+        <h3>En proceso</h3>
+
+        <p id="enProceso">
+            0
+        </p>
+
+    </div>
+
+
+    <div class="kpi-card">
+
+        <h3>Cumplimiento</h3>
+
+        <p id="cumplimiento">
+            0%
+        </p>
+
+    </div>
+
+
+</div>
+
+
+
+<!-- =========================
+     GRÁFICOS
+========================== -->
+
+<div class="graficos-container">
+
+
+    <!-- GRÁFICO ACTIVIDADES EN EJECUCIÓN POR MES -->
+
+    <div class="grafico-card">
+
+        <h2>
+            Actividades en ejecución por mes
+        </h2>
+
+        <canvas id="miGrafico"></canvas>
+
+    </div>
+
+
+
+    <!-- GRÁFICO POR ESTADO -->
+
+    <div class="grafico-card">
+
+        <h2>
+            Estado de actividades
+        </h2>
+
+        <canvas id="graficoEstado"></canvas>
+
+    </div>
+
+
+
+    <!-- GRÁFICO POR RESPONSABLE -->
+
+    <div class="grafico-card">
+
+        <h2>
+            Actividades por responsable
+        </h2>
+
+        <canvas id="graficoResponsable"></canvas>
+
+    </div>
+
+
+
+    <!-- GRÁFICO POR PRIORIDAD -->
+
+    <div class="grafico-card">
+
+        <h2>
+            Actividades por prioridad
+        </h2>
+
+        <canvas id="graficoPrioridad"></canvas>
+
+    </div>
+
+
+</div>
+
+
+
+<!-- =========================
+     LIBRERÍAS
+========================== -->
+
+<!-- Chart.js -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<!-- SheetJS -->
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+
+
+<!-- =========================
+     TABLA DE ACTIVIDADES
+========================== -->
+
+<div class="tabla-card">
+
+
+    <!-- CABECERA DE TABLA -->
+
+    <div class="tabla-header">
+
+
+        <div>
+
+            <h2>
+                Actividades
+            </h2>
+
+
+            <span id="contadorResultados">
+
+                Mostrando 0 actividades
+
+            </span>
+
+        </div>
+
+
+
+        <!-- BUSCADOR -->
+
+        <input
+            type="text"
+            id="buscador"
+            placeholder="🔎 Buscar código, site, actividad, responsable..."
+            autocomplete="off"
+        >
+
+
+
+        <!-- ACTUALIZAR -->
+
+        <button id="btnActualizar">
+
+            ↻ Actualizar datos
+
+        </button>
+
+
+    </div>
+
+
+
+    <!-- =========================
+         FILTROS
+    ========================== -->
+
+    <div class="filtros">
+
+
+        <!-- REGIÓN -->
+
+        <select id="filtroRegion">
+
+            <option value="">
+
+                Todas las regiones
+
+            </option>
+
+        </select>
+
+
+
+        <!-- ESTADO -->
+
+        <select id="filtroEstado">
+
+            <option value="">
+
+                Todos los estados
+
+            </option>
+
+        </select>
+
+
+
+        <!-- RESPONSABLE -->
+
+        <select id="filtroResponsable">
+
+            <option value="">
+
+                Todos los responsables
+
+            </option>
+
+        </select>
+
+
+
+        <!-- PRIORIDAD -->
+
+        <select id="filtroPrioridad">
+
+            <option value="">
+
+                Todas las prioridades
+
+            </option>
+
+        </select>
+
+
+
+        <!-- TIPO -->
+
+        <select id="filtroTipo">
+
+            <option value="">
+
+                Todos los tipos
+
+            </option>
+
+        </select>
+
+
+
+        <!-- ÁREA -->
+
+        <select id="filtroArea">
+
+            <option value="">
+
+                Todas las áreas
+
+            </option>
+
+        </select>
+
+
+
+        <!-- LIMPIAR -->
+
+        <button id="btnLimpiarFiltros">
+
+            ↻ Limpiar filtros
+
+        </button>
+
+
+    </div>
+
+
+
+    <!-- =========================
+         TABLA
+    ========================== -->
+
+    <div class="tabla-scroll">
+
+
+        <table>
+
+
+            <!-- =========================
+                 ENCABEZADO
+            ========================== -->
+
+            <thead>
+
+                <tr>
+
+
+                    <!-- NUMERACIÓN -->
+
+                    <th>
+                        #
+                    </th>
+
+
+
+                    <!-- CÓDIGO -->
+
+                    <th data-columna="Codigo">
+
+                        Código ↕️
+
+                    </th>
+
+
+
+                    <!-- SITE -->
+
+                    <th data-columna="Site">
+
+                        Site ↕️
+
+                    </th>
+
+
+
+                    <!-- REGIÓN -->
+
+                    <th data-columna="RegiÃ³n">
+
+                        Región ↕️
+
+                    </th>
+
+
+
+                    <!-- ACTIVIDAD -->
+
+                    <th data-columna="Actividad">
+
+                        Actividad ↕️
+
+                    </th>
+
+
+
+                    <!-- RESPONSABLE -->
+
+                    <th data-columna="Responsable">
+
+                        Responsable ↕️
+
+                    </th>
+
+
+
+                    <!-- ESTADO -->
+
+                    <th data-columna="Estado">
+
+                        Estado ↕️
+
+                    </th>
+
+
+
+                    <!-- PRIORIDAD -->
+
+                    <th data-columna="Prioridad">
+
+                        Prioridad ↕️
+
+                    </th>
+
+
+
+                    <!-- TIPO -->
+
+                    <th data-columna="Tipo">
+
+                        Tipo ↕️
+
+                    </th>
+
+
+
+                    <!-- ÁREA -->
+
+                    <th data-columna="Area">
+
+                        Área ↕️
+
+                    </th>
+
+
+
+                    <!-- FECHA INICIO -->
+
+                    <th data-columna="Fecha Inicio">
+
+                        Fecha Inicio ↕️
+
+                    </th>
+
+
+
+                    <!-- FECHA CIERRE -->
+
+                    <th data-columna="Fecha Cierre">
+
+                        Fecha Cierre ↕️
+
+                    </th>
+
+
+                </tr>
+
+            </thead>
+
+
+
+            <!-- =========================
+                 CUERPO DE TABLA
+            ========================== -->
+
+            <tbody id="tablaDatos">
+
+                <!--
+                    Los datos se cargarán
+                    automáticamente desde
+                    Google Sheets.
+                -->
+
+            </tbody>
+
+
+        </table>
+
+
+    </div>
+
+
+</div>
+
+
+
+<!-- =========================
+     JAVASCRIPT
+========================== -->
+
+<script src="js/dashboard.js"></script>
+
+
+</body>
+
+</html>
